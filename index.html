@@ -80,14 +80,14 @@
 
 <div class="form-container">
     <h2>Registre sua Presença</h2>
-    <form id="visitaForm" autocomplete="off">
+    <form id="visitaForm" autocomplete="on">
         <div class="field">
             <label>Nome Completo</label>
             <input type="text" id="inputNome" name="visitante" required placeholder="Digite seu nome">
         </div>
         <div class="field">
             <label>Telefone</label>
-            <input type="tel" id="inputTel" name="telefone" required placeholder="(00) 00000-0000">
+            <input type="tel" id="inputTel" name="telefone" autocomplete="tel" required placeholder="(00) 00000-0000">
         </div>
         <div class="field">
             <label>Você é evangélico(a)?</label>
@@ -95,6 +95,8 @@
                 <option value="" disabled selected>Selecione...</option>
                 <option value="Sim">Sim</option>
                 <option value="Não">Não</option>
+ 		<option value="Estou Afastado">Estou afastado</option>
+                <option value="Estou sem Congregação">Estou sem Congregação</option>
             </select>
         </div>
         <div class="field">
@@ -154,26 +156,22 @@ document.getElementById('inputNome').addEventListener('input', function() {
 form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // 1. CAPTURAR OS DADOS ANTES DE QUALQUER COISA
     const dados = new FormData(form);
     const nomeVisitante = document.getElementById('inputNome').value;
 
-    // 2. TRAVAR O BOTÃO
     btn.disabled = true;
     loader.style.display = 'block';
     btnText.innerText = "REGISTRANDO...";
 
-    // 3. ENVIAR PARA O GOOGLE
     fetch(SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        body: dados // Enviamos a constante que já tem os dados guardados
+        body: dados 
     })
     .then(() => {
         finalizarProcesso(nomeVisitante);
     })
     .catch(() => {
-        // Se der erro de CORS, mas tiver internet, tratamos como sucesso
         if (navigator.onLine) {
             finalizarProcesso(nomeVisitante);
         } else {
@@ -186,7 +184,6 @@ form.addEventListener('submit', function(e) {
 });
 
 function finalizarProcesso(nome) {
-    // 1. Mostra o sucesso
     const modal = document.getElementById('modalOverlay');
     const msgTexto = document.getElementById('msgPersonalizada');
     const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
@@ -196,7 +193,6 @@ function finalizarProcesso(nome) {
     
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 10000 });
 
-    // 2. LIMPEZA TOTAL (Só acontece agora que o envio terminou)
     form.reset();
     const elementos = form.querySelectorAll('input, textarea, select');
     elementos.forEach(el => {
@@ -204,7 +200,6 @@ function finalizarProcesso(nome) {
         if(el.tagName === "SELECT") el.selectedIndex = 0;
     });
 
-    // 3. Destravar botão para o próximo uso
     btn.disabled = false;
     loader.style.display = 'none';
     btnText.innerText = "Registrar Presença";
