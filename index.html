@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Visitantes | ADpaz Cidade Praia</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { 
+            --primary: #6b8e23; 
+            --bg-body-fallback: #556b2f; 
+            --bg-form: #ffffff; 
+            --success: #2e8b57; 
+            --overlay: rgba(0,0,0,0.85);
+            --white: #fff;
+            --text-dark: #333;
+            --text-gray: #606060;
+            --border: #ccd0d5;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background-color: var(--bg-body-fallback); 
+            background-image: url('background.png'); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+            background-attachment: fixed; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px 0;
+        }
+
+        .logo-top-container { width: 100%; max-width: 300px; margin-bottom: 20px; display: flex; justify-content: center; padding: 0 15px; box-sizing: border-box; }
+        .logo-image { width: 100%; max-width: 100px; height: auto; object-fit: contain; }
+
+        .form-container { 
+            background: var(--bg-form); 
+            width: 85%;
+            max-width: 400px; 
+            padding: 25px;
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 { text-align: center; color: var(--primary); margin-top: 0; margin-bottom: 20px; font-weight: 700; font-size: 22px;}
+        .field { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--text-gray); }
+        
+        input, select, textarea { 
+            width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; box-sizing: border-box; font-size: 16px; color: var(--text-dark);
+        }
+        
+        button#btnEnviar { 
+            width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px;
+        }
+
+        button#btnEnviar:disabled { background: #a2b385; cursor: not-allowed; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--overlay); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-content { background: var(--white); padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 85%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .btn-fechar { margin-top: 15px; padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .spinner { display: none; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; border-top-color: #fff; animation: spin 0.9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="logo-top-container">
+    <img src="logo.png" alt="Logo ADpaz" class="logo-image">
+</div>
+
+<div class="form-container">
+    <h2>Registre sua Presença</h2>
+    <form id="visitaForm" autocomplete="off">
+        <div class="field">
+            <label>Nome Completo</label>
+            <input type="text" id="inputNome" name="visitante" required placeholder="Digite seu nome">
+        </div>
+        <div class="field">
+            <label>Telefone</label>
+            <input type="tel" id="inputTel" name="telefone" required placeholder="(00) 00000-0000">
+        </div>
+        <div class="field">
+            <label>Você é evangélico(a)?</label>
+            <select name="evangelico" id="selectEvangelico" required>
+                <option value="" disabled selected>Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Quer deixar uma Mensagem?</label>
+            <textarea name="mensagem" id="inputMsg" rows="2" placeholder="Opcional"></textarea>
+        </div>
+        <div class="field">
+            <label>Veio a convite de alguém, quem?</label>
+            <input type="text" name="outro" id="inputOutro" placeholder="Através de quem você chegou aqui?">
+        </div>
+
+        <button type="submit" id="btnEnviar">
+            <div class="spinner" id="loader"></div>
+            <span id="btnText">Registrar Presença</span>
+        </button>
+    </form>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+        <h3 style="color: var(--success); margin: 0;">✅ Presença Registrada!</h3>
+        <p id="msgPersonalizada" style="color: #333; font-size: 18px; margin: 15px 0;"></p>
+        <button class="btn-fechar" onclick="fecharModal()">Obrigado!</button>
+    </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4dbzMP7XO-Mygp5f52NAeluf43d3ZUi9EdjodS5-A9n9SCh5ofqz_BeBedMm4T6e8/exec";
+
+const frases = [
+    "Que alegria ter você conosco, {nome}!",
+    "Você é muito importante para nós, {nome}!",
+    "Obrigado pela sua presença, {nome}!",
+    "Sua visita nos alegra muito, {nome}!",
+    "É uma honra ter você aqui, {nome}!"
+];
+
+const form = document.getElementById('visitaForm');
+const btn = document.getElementById('btnEnviar');
+const loader = document.getElementById('loader');
+const btnText = document.getElementById('btnText');
+
+// Máscara e Capitalização mantidas
+document.getElementById('inputTel').addEventListener('input', function (e) {
+    let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+    e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+});
+
+document.getElementById('inputNome').addEventListener('input', function() {
+    let palavras = this.value.split(' ');
+    for (let i = 0; i < palavras.length; i++) {
+        if (palavras[i].length > 0) palavras[i] = palavras[i][0].toUpperCase() + palavras[i].substr(1).toLowerCase();
+    }
+    this.value = palavras.join(' ');
+});
+
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // 1. CAPTURAR OS DADOS ANTES DE QUALQUER COISA
+    const dados = new FormData(form);
+    const nomeVisitante = document.getElementById('inputNome').value;
+
+    // 2. TRAVAR O BOTÃO
+    btn.disabled = true;
+    loader.style.display = 'block';
+    btnText.innerText = "REGISTRANDO...";
+
+    // 3. ENVIAR PARA O GOOGLE
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: dados // Enviamos a constante que já tem os dados guardados
+    })
+    .then(() => {
+        finalizarProcesso(nomeVisitante);
+    })
+    .catch(() => {
+        // Se der erro de CORS, mas tiver internet, tratamos como sucesso
+        if (navigator.onLine) {
+            finalizarProcesso(nomeVisitante);
+        } else {
+            alert("Erro de conexão. Verifique sua internet.");
+            btn.disabled = false;
+            loader.style.display = 'none';
+            btnText.innerText = "Registrar Presença";
+        }
+    });
+});
+
+function finalizarProcesso(nome) {
+    // 1. Mostra o sucesso
+    const modal = document.getElementById('modalOverlay');
+    const msgTexto = document.getElementById('msgPersonalizada');
+    const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
+    
+    msgTexto.innerText = fraseAleatoria.replace("{nome}", nome);
+    modal.style.display = 'flex';
+    
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 10000 });
+
+    // 2. LIMPEZA TOTAL (Só acontece agora que o envio terminou)
+    form.reset();
+    const elementos = form.querySelectorAll('input, textarea, select');
+    elementos.forEach(el => {
+        el.value = "";
+        if(el.tagName === "SELECT") el.selectedIndex = 0;
+    });
+
+    // 3. Destravar botão para o próximo uso
+    btn.disabled = false;
+    loader.style.display = 'none';
+    btnText.innerText = "Registrar Presença";
+}
+
+function fecharModal() {
+    document.getElementById('modalOverlay').style.display = 'none';
+}
+</script>
+
+</body>
+</html>
