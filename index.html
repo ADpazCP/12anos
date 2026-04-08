@@ -67,6 +67,15 @@
         .modal-content { background: var(--white); padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 85%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .btn-fechar { margin-top: 15px; padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
 
+        /* Estilo para destacar o nome */
+        .nome-destaque {
+            display: block; /* Garante que fique na linha de baixo */
+            color: var(--primary); /* Cor verde */
+            font-weight: 800;
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .spinner { display: none; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; border-top-color: #fff; animation: spin 0.9s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -95,8 +104,8 @@
                 <option value="" disabled selected>Selecione...</option>
                 <option value="Sim">Sim</option>
                 <option value="Não">Não</option>
- 		<option value="Estou Afastado">Estou afastado</option>
-                <option value="Estou sem Congregação">Estou sem Congregação</option>
+                <option value="Estou afastado(a)">Estou afastado(a)</option>
+                <option value="Estou sem congregação">Estou sem congregação</option>
             </select>
         </div>
         <div class="field">
@@ -127,11 +136,11 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4dbzMP7XO-Mygp5f52NAeluf43d3ZUi9EdjodS5-A9n9SCh5ofqz_BeBedMm4T6e8/exec";
 
 const frases = [
-    "Que alegria ter você conosco, {nome}!",
-    "Você é muito importante para nós, {nome}!",
-    "Obrigado pela sua presença, {nome}!",
-    "Sua visita nos alegra muito, {nome}!",
-    "É uma honra ter você aqui, {nome}!"
+    "Que alegria ter você conosco,",
+    "Você é muito importante para nós,",
+    "Obrigado pela sua presença,",
+    "Sua visita nos alegra muito,",
+    "É uma honra ter você aqui,"
 ];
 
 const form = document.getElementById('visitaForm');
@@ -139,7 +148,6 @@ const btn = document.getElementById('btnEnviar');
 const loader = document.getElementById('loader');
 const btnText = document.getElementById('btnText');
 
-// Máscara e Capitalização mantidas
 document.getElementById('inputTel').addEventListener('input', function (e) {
     let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
     e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
@@ -155,7 +163,6 @@ document.getElementById('inputNome').addEventListener('input', function() {
 
 form.addEventListener('submit', function(e) {
     e.preventDefault();
-
     const dados = new FormData(form);
     const nomeVisitante = document.getElementById('inputNome').value;
 
@@ -188,7 +195,9 @@ function finalizarProcesso(nome) {
     const msgTexto = document.getElementById('msgPersonalizada');
     const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
     
-    msgTexto.innerText = fraseAleatoria.replace("{nome}", nome);
+    // Inserindo o nome com a classe de destaque em uma nova linha
+    msgTexto.innerHTML = `${fraseAleatoria} <span class="nome-destaque">${nome}</span>`;
+    
     modal.style.display = 'flex';
     
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 10000 });
