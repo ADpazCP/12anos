@@ -67,10 +67,9 @@
         .modal-content { background: var(--white); padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 85%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .btn-fechar { margin-top: 15px; padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
 
-        /* Estilo para destacar o nome */
         .nome-destaque {
-            display: block; /* Garante que fique na linha de baixo */
-            color: var(--primary); /* Cor verde */
+            display: block; 
+            color: var(--primary); 
             font-weight: 800;
             font-size: 22px;
             margin-top: 10px;
@@ -195,7 +194,6 @@ function finalizarProcesso(nome) {
     const msgTexto = document.getElementById('msgPersonalizada');
     const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
     
-    // Inserindo o nome com a classe de destaque em uma nova linha
     msgTexto.innerHTML = `${fraseAleatoria} <span class="nome-destaque">${nome}</span>`;
     
     modal.style.display = 'flex';
@@ -214,8 +212,13 @@ function finalizarProcesso(nome) {
     btnText.innerText = "Registrar Presença";
 }
 
+// FUNÇÃO ALTERADA PARA FECHAR A PÁGINA
 function fecharModal() {
-    document.getElementById('modalOverlay').style.display = 'none';
+    window.close();
+    // Caso o window.close() seja bloqueado pelo navegador, redireciona para a home:
+    setTimeout(function() {
+        window.location.href = "https://adpazcp.github.io/12anos/";
+    }, 100);
 }
 </script>
 
