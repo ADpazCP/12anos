@@ -11,8 +11,7 @@
             --bg-body-fallback: #556b2f; 
             --bg-form: #ffffff; 
             --success: #2e8b57; 
-            --overlay: rgba(0,0,0,0.85);
-            --white: #fff;
+            --white: #ffffff;
             --text-dark: #333;
             --text-gray: #606060;
             --border: #ccd0d5;
@@ -35,9 +34,11 @@
             padding: 20px 0;
         }
 
+        /* Estilização do Logo */
         .logo-top-container { width: 100%; max-width: 300px; margin-bottom: 20px; display: flex; justify-content: center; padding: 0 15px; box-sizing: border-box; }
         .logo-image { width: 100%; max-width: 100px; height: auto; object-fit: contain; }
 
+        /* Container do Formulário */
         .form-container { 
             background: var(--bg-form); 
             width: 85%;
@@ -55,27 +56,62 @@
         
         input, select, textarea { 
             width: 100%; padding: 12px; border: 1.5px solid var(--border); border-radius: 10px; box-sizing: border-box; font-size: 16px; color: var(--text-dark);
+            outline-color: var(--primary);
         }
         
         button#btnEnviar { 
             width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px;
+            transition: background 0.3s;
         }
 
         button#btnEnviar:disabled { background: #a2b385; cursor: not-allowed; }
 
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--overlay); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
-        .modal-content { background: var(--white); padding: 30px; border-radius: 20px; text-align: center; max-width: 320px; width: 85%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .btn-fechar { margin-top: 15px; padding: 12px 30px; background: var(--primary); color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        /* MODAL EM TELA CHEIA (OVERLAY) */
+        .modal-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: var(--white); /* Agora cobre toda a página com branco sólido */
+            z-index: 9999; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            text-align: center;
+        }
+
+        .modal-content { 
+            padding: 20px; 
+            max-width: 400px; 
+            width: 90%; 
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .btn-fechar { 
+            margin-top: 30px; 
+            padding: 16px 50px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 35px; 
+            cursor: pointer; 
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(107, 142, 35, 0.3);
+        }
 
         .nome-destaque {
             display: block; 
             color: var(--primary); 
             font-weight: 800;
-            font-size: 22px;
+            font-size: 28px;
             margin-top: 10px;
         }
 
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* Animações e Spinner */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .spinner { display: none; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.4); border-radius: 50%; border-top-color: #fff; animation: spin 0.9s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -125,8 +161,9 @@
 
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal-content">
-        <h3 style="color: var(--success); margin: 0;">✅ Presença Registrada!</h3>
-        <p id="msgPersonalizada" style="color: #333; font-size: 18px; margin: 15px 0;"></p>
+        <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
+        <h3 style="color: var(--success); font-size: 24px; margin: 0;">Presença Confirmada!</h3>
+        <p id="msgPersonalizada" style="color: #333; font-size: 18px; margin: 20px 0;"></p>
         <button class="btn-fechar" onclick="fecharModal()">Obrigado!</button>
     </div>
 </div>
@@ -147,11 +184,13 @@ const btn = document.getElementById('btnEnviar');
 const loader = document.getElementById('loader');
 const btnText = document.getElementById('btnText');
 
+// Máscara de Telefone
 document.getElementById('inputTel').addEventListener('input', function (e) {
     let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
     e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
 });
 
+// Primeira letra maiúscula no nome
 document.getElementById('inputNome').addEventListener('input', function() {
     let palavras = this.value.split(' ');
     for (let i = 0; i < palavras.length; i++) {
@@ -195,30 +234,22 @@ function finalizarProcesso(nome) {
     const fraseAleatoria = frases[Math.floor(Math.random() * frases.length)];
     
     msgTexto.innerHTML = `${fraseAleatoria} <span class="nome-destaque">${nome}</span>`;
-    
     modal.style.display = 'flex';
     
-    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 10000 });
-
-    form.reset();
-    const elementos = form.querySelectorAll('input, textarea, select');
-    elementos.forEach(el => {
-        el.value = "";
-        if(el.tagName === "SELECT") el.selectedIndex = 0;
+    // Disparar confetes
+    confetti({ 
+        particleCount: 150, 
+        spread: 70, 
+        origin: { y: 0.6 },
+        zIndex: 10000 
     });
 
-    btn.disabled = false;
-    loader.style.display = 'none';
-    btnText.innerText = "Registrar Presença";
+    form.reset();
 }
 
-// FUNÇÃO ALTERADA PARA FECHAR A PÁGINA
+// FUNÇÃO DE REDIRECIONAMENTO PARA A BIO
 function fecharModal() {
-    window.close();
-    // Caso o window.close() seja bloqueado pelo navegador, redireciona para a home:
-    setTimeout(function() {
-        window.location.href = "https://adpazcp.github.io/12anos/";
-    }, 100);
+    window.location.href = "https://adpazcp.github.io/bioadpaz/";
 }
 </script>
 
